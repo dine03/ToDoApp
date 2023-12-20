@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            min-width: 250px;
+        }
+
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        ul {
+            margin: 0;
+            padding: 0;
+        }
+
+
+        ul li {
+            cursor: pointer;
+            position: relative;
+            padding: 12px 8px 12px 40px;
+            list-style-type: none;
+            background: #eee;
+            font-size: 18px;
+            transition: 0.2s;
+
+
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+
+        ul li:nth-child(odd) {
+            background: #f9f9f9;
+        }
+
+
+        ul li:hover {
+            background: #ddd;
+        }
+
+
+        ul li.checked {
+            background: #888;
+            color: #fff;
+            text-decoration: line-through;
+        }
+
+
+        ul li.checked::before {
+            content: '';
+            position: absolute;
+            border-color: #fff;
+            border-style: solid;
+            border-width: 0 2px 2px 0;
+            top: 10px;
+            left: 16px;
+            transform: rotate(45deg);
+            height: 15px;
+            width: 7px;
+        }
+
+
+        .close {
+            position: absolute;
+            right: 0;
+            top: 0;
+            padding: 12px 16px 12px 16px;
+        }
+
+        .close:hover {
+            background-color: #f44336;
+            color: white;
+        }
+
+        /* header */
+        .header {
+            background-color: #f44336;
+            padding: 30px 40px;
+            color: rgba(0, 0, 0, 0.99);
+            text-align: center;
+        }
+
+
+        .header:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+
+        input {
+            margin: 0;
+            border: none;
+            border-radius: 0;
+            width: 75%;
+            padding: 10px;
+            float: left;
+            font-size: 16px;
+        }
+
+        /* "Add" button */
+        .addBtn {
+            padding: 10px;
+            width: 25%;
+            background: #d9d9d9;
+            color: rgba(0, 0, 0, 0.99);
+            float: left;
+            text-align: center;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            border-radius: 0;
+        }
+
+        .addBtn:hover {
+            background-color: #bbb;
+        }
+
+        .category-priority {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .category-priority,
+        .due-date,
+        .todo-id {
+            font-size: 14px;
+            color: #666;
+        }
+
+        #searchInput {
+            margin-bottom: 15px;
+            padding: 8px;
+            width: 15%;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+    </style>
+</head>
+<body>
+<div class="header">
+    <h2 style="margin:5px">My To Do List</h2>
+    <input type="text" id="myInput" placeholder="Title...">
+    <input type="date" id="dueDate">
+    <select id="categorySelect">
+        <option value="work">Arbeit</option>
+        <option value="personal">Persoenlich</option>
+        <option value="other">Andere</option>
+        <option value="school">Schule</option>
+        <option value="leisuretime">Freizeit</option>
+        <option value="finances">Finanzen</option>
+    </select>
+
+    <select id="prioritySelect">
+        <option value="high">Hoch</option>
+        <option value="medium">Mittel</option>
+        <option value="low">Niedrig</option>
+        <option value="none">Keine</option>
+    </select>
+    <span onclick="newElement()" class="addBtn"><strong>Add</strong></span>
+
+    <input type="text" id="searchInput" placeholder="Suche nach ID, Kategorie oder Titel..." onkeyup="searchTodos()">
+</div>
+
+
+<ul id="myUL" class="list-group"></ul>
+
+<script>
+    let todoIdCounter = 1;
+    function loadTodos() {
+        var todos = JSON.parse(localStorage.getItem('todos')) || [];
+        displayTodos(todos);
+    }
+
+
+    function displayTodos(todos) {
+        var ul = document.getElementById("myUL");
+        ul.innerHTML = "";
+
+        todos.forEach(function(todo) {
+            var li = document.createElement("li");
+            li.className = "list-group-item";
+
+
+            var todoHTML = `
+                    <span class="title">${todo.title}</span>
+                    <span class="category">${todo.category}</span>
+                    <span class="dueDate">${todo.dueDate}</span>
+                    <span onclick="removeTodo(${todo.id})" class="close">
+                        <span class="glyphicon glyphicon-trash"></span>
+                    </span>
+                `;
+
+            li.innerHTML = todoHTML;
+            ul.appendChild(li);
+        });
+    }
+    function newElement() {
+        var li = document.createElement("li");
+        li.className = "list-group-item";
+
+        var inputValue = document.getElementById("myInput").value;
+        var categoryValue = document.getElementById("categorySelect").value;
+        var priorityValue = document.getElementById("prioritySelect").value;
+        var dueDateValue = document.getElementById("dueDate").value;
+        var todoId = todoIdCounter++;
+
+        var titleText = document.createTextNode(inputValue);
+        var categoryText = document.createTextNode("Category: " + categoryValue);
+        var priorityText = document.createTextNode("Priority: " + priorityValue);
+        var dueDateText = document.createTextNode("Maturity: " + dueDateValue);
+        var todoIdText = document.createTextNode("ID: " + todoId);
+
+        var titleCol = document.createElement("div");
+        titleCol.className = "col-sm-4";
+        titleCol.appendChild(titleText);
+
+        var categoryCol = document.createElement("div");
+        categoryCol.className = "col-sm-2 category-priority";
+        categoryCol.appendChild(categoryText);
+
+        var priorityCol = document.createElement("div");
+        priorityCol.className = "col-sm-2 category-priority";
+        priorityCol.appendChild(priorityText);
+
+        var dueDateCol = document.createElement("div");
+        dueDateCol.className = "col-sm-2 due-date";
+        dueDateCol.appendChild(dueDateText);
+
+        var todoIdCol = document.createElement("div");
+        todoIdCol.className = "col-sm-1 todo-id";
+        todoIdCol.appendChild(todoIdText);
+
+        var trashIcon = document.createElement("span");
+        trashIcon.className = "glyphicon glyphicon-trash";
+        trashIcon.style.float = "right";
+        trashIcon.style.cursor = "pointer";
+        trashIcon.onclick = function() {
+            var item = this.parentNode.parentNode;
+            item.parentNode.removeChild(item);
+        };
+
+        var deleteCol = document.createElement("div");
+        deleteCol.className = "col-sm-1";
+        deleteCol.style.textAlign = "right";
+        deleteCol.appendChild(trashIcon);
+
+        var row = document.createElement("div");
+        row.className = "row";
+        row.appendChild(titleCol);
+        row.appendChild(categoryCol);
+        row.appendChild(priorityCol);
+        row.appendChild(dueDateCol);
+        row.appendChild(todoIdCol);
+        row.appendChild(deleteCol);
+
+        li.appendChild(row);
+
+        document.getElementById("myUL").appendChild(li);
+
+        document.getElementById("myInput").value = "";
+        document.getElementById("dueDate").value = "";
+    }
+    function searchTodos() {
+        var input, filter, ul, li, row, i, txtValue;
+        input = document.getElementById('searchInput');
+        filter = input.value.toUpperCase();
+        ul = document.getElementById("myUL");
+        li = ul.getElementsByClassName('list-group-item');
+
+        for (i = 0; i < li.length; i++) {
+            row = li[i].getElementsByClassName('row')[0];
+            row = li[i].getElementsByClassName('row')[0];
+            row = li[i].getElementsByClassName('row')[0];
+            txtValue = row.textContent || row.innerText;
+
+            if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                li[i].style.display = "";
+            } else {
+                li[i].style.display = "none";
+            }
+        }
+        window.onload = function () {
+            loadTodos();
+        };
+    }
+</script>
+
+</body>
+</html>
